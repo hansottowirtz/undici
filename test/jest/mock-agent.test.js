@@ -1,6 +1,6 @@
 'use strict'
 
-const { request, setGlobalDispatcher, MockAgent } = require('../..')
+const { setGlobalDispatcher, MockAgent } = require('../..')
 const { getResponse } = require('../../lib/mock/mock-utils')
 
 /* global describe, it, expect */
@@ -42,5 +42,22 @@ describe('MockAgent', () => {
 
     const jsonResponse = JSON.parse(await getResponse(body))
     expect(jsonResponse).toEqual({ foo: 'bar' })
+  })
+
+  it('should work in jest with fetch', async () => {
+    expect.assertions(1)
+
+    mockAgent = new MockAgent()
+    mockAgent.disableNetConnect()
+    setGlobalDispatcher(mockAgent)
+
+    let failed = false
+    try {
+      await fetch('http://localhost:9999')
+    } catch (e) {
+      if (e.cause?.code === 'UND_MOCK_ERR_MOCK_NOT_MATCHED') failed = true
+    }
+
+    expect(failed).toBe(true)
   })
 })
